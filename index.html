@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Meshoras</title>
+  <meta name="description" content="Meshoras es una aplicación local para fichar entradas y salidas, consultar horas mensuales, calcular horas extra y exportar registros de trabajo.">
+  <meta name="theme-color" content="#111827">
+  <meta property="og:title" content="Meshoras">
+  <meta property="og:description" content="Controla tus horas de trabajo, horas extra e historial mensual desde el móvil o PC.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Meshoras">
+  <meta name="twitter:description" content="Fichaje, historial mensual, horas extra y exportación de registros.">
+  <meta name="twitter:image" content="preview.png">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='28' fill='%23111827'/%3E%3Cpath d='M34 30h60a10 10 0 0 1 10 10v54a10 10 0 0 1-10 10H34a10 10 0 0 1-10-10V40a10 10 0 0 1 10-10Z' fill='%23ffffff' opacity='.12'/%3E%3Cpath d='M42 52h44M42 70h28M42 88h36' stroke='%23facc15' stroke-width='9' stroke-linecap='round'/%3E%3Ccircle cx='91' cy='86' r='13' fill='%2334d399'/%3E%3C/svg%3E">
+  <style>
+    :root{
+      --bg:#0b1020;
+      --bg2:#121a33;
+      --card:rgba(255,255,255,.085);
+      --card2:rgba(255,255,255,.12);
+      --text:#f8fafc;
+      --muted:#a7b0c3;
+      --soft:#d7def0;
+      --brand:#facc15;
+      --brand2:#f59e0b;
+      --good:#34d399;
+      --warn:#facc15;
+      --bad:#fb7185;
+      --info:#60a5fa;
+      --line:rgba(255,255,255,.14);
+      --shadow:0 22px 80px rgba(0,0,0,.36);
+      --radius:24px;
+      --safeBottom:env(safe-area-inset-bottom,0px);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;overflow:hidden;background:radial-gradient(circle at top left,#26345f 0,#111827 35%,#070b14 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+    body{display:flex;align-items:center;justify-content:center;padding:14px}
+    button,input,select{font:inherit}
+    button{border:0;cursor:pointer;color:inherit;-webkit-tap-highlight-color:transparent}
+    .shell{width:min(1180px,100%);height:min(900px,100%);display:grid;grid-template-rows:auto 1fr;gap:12px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.11),rgba(255,255,255,.045));border-radius:var(--radius);box-shadow:var(--shadow);backdrop-filter:blur(18px)}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .logo{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:grid;place-items:center;box-shadow:0 12px 30px rgba(250,204,21,.25);font-size:24px;color:#111827;flex:0 0 auto}
+    .brand h1{margin:0;font-size:22px;line-height:1.05;letter-spacing:-.03em}
+    .brand p{margin:4px 0 0;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:58vw}
+    .clockNow{text-align:right;min-width:132px}
+    .clockNow b{display:block;font-size:19px;letter-spacing:-.02em}
+    .clockNow span{font-size:12px;color:var(--muted)}
+    .app{height:100%;min-height:0;display:grid;grid-template-columns:238px 1fr;gap:12px}
+    .sidebar,.panel,.onboarding{border:1px solid var(--line);background:linear-gradient(160deg,rgba(255,255,255,.105),rgba(255,255,255,.048));border-radius:var(--radius);box-shadow:var(--shadow);backdrop-filter:blur(18px)}
+    .sidebar{padding:12px;display:flex;flex-direction:column;gap:10px;min-height:0}
+    .navBtn{width:100%;display:flex;align-items:center;gap:10px;padding:14px;border-radius:18px;background:transparent;color:var(--soft);text-align:left;transition:.18s ease;position:relative;overflow:hidden}
+    .navBtn:hover{background:rgba(255,255,255,.08)}
+    .navBtn.active{background:linear-gradient(135deg,rgba(250,204,21,.24),rgba(245,158,11,.13));color:#fff;box-shadow:inset 0 0 0 1px rgba(250,204,21,.25)}
+    .navBtn .ico{width:32px;height:32px;border-radius:12px;background:rgba(255,255,255,.09);display:grid;place-items:center;flex:0 0 auto}
+    .navBtn.active .ico{background:rgba(250,204,21,.22)}
+    .navBtn small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+    .spacer{flex:1}
+    .miniStat{padding:12px;border-radius:18px;background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.09)}
+    .miniStat span{display:block;color:var(--muted);font-size:12px}
+    .miniStat b{display:block;font-size:22px;letter-spacing:-.04em;margin-top:2px}
+    .panel{min-height:0;overflow:hidden;display:none;padding:14px}
+    .panel.active{display:flex;flex-direction:column;gap:12px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .card{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:14px;min-width:0}
+    .cardTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .cardTitle h2,.cardTitle h3{margin:0;font-size:18px;letter-spacing:-.03em}
+    .cardTitle p{margin:4px 0 0;color:var(--muted);font-size:12px}
+    .pill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:8px 10px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.1);font-size:12px;color:var(--soft);white-space:nowrap}
+    .pulseDot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+    .pulseDot.on{background:var(--good);box-shadow:0 0 0 8px rgba(52,211,153,.12)}
+    .heroClock{display:grid;place-items:center;text-align:center;min-height:230px;border-radius:26px;background:radial-gradient(circle at center,rgba(250,204,21,.18),rgba(96,165,250,.08) 38%,rgba(255,255,255,.035) 78%);border:1px solid rgba(255,255,255,.1);padding:18px}
+    .heroClock .label{color:var(--muted);font-size:13px}
+    .heroClock .time{font-size:clamp(46px,9vw,86px);font-weight:900;letter-spacing:-.07em;line-height:1;margin:8px 0 4px;font-variant-numeric:tabular-nums}
+    .heroClock .sub{color:var(--soft);font-size:14px}
+    .actionRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .primary,.secondary,.danger,.ghost{border-radius:18px;padding:14px 16px;font-weight:800;letter-spacing:-.02em;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:50px;transition:transform .14s ease,filter .14s ease,opacity .14s ease;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12)}
+    .primary{background:linear-gradient(135deg,var(--good),#14b8a6);color:#052e2b;box-shadow:0 16px 35px rgba(20,184,166,.16)}
+    .secondary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#261503;box-shadow:0 16px 35px rgba(250,204,21,.16)}
+    .danger{background:linear-gradient(135deg,#fb7185,#ef4444);color:#fff;box-shadow:0 16px 35px rgba(239,68,68,.16)}
+    .ghost{color:var(--soft)}
+    button:not(:disabled):active{transform:scale(.98)}
+    button:disabled{opacity:.42;cursor:not-allowed;filter:saturate(.5)}
+    .statBox{border-radius:20px;padding:13px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);min-width:0}
+    .statBox span{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .statBox b{display:block;font-size:26px;margin-top:5px;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+    .statBox em{font-style:normal;color:var(--muted);font-size:11px}
+    .logList{display:flex;flex-direction:column;gap:8px;max-height:210px;overflow:auto;padding-right:4px}
+    .logItem{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px;border-radius:16px;background:rgba(255,255,255,.065);border:1px solid rgba(255,255,255,.08)}
+    .logItem b{display:block;font-size:13px}
+    .logItem span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+    .empty{display:grid;place-items:center;text-align:center;color:var(--muted);padding:22px;border:1px dashed rgba(255,255,255,.15);border-radius:20px;min-height:112px}
+    .monthBar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .monthBar h2{font-size:20px;margin:0;letter-spacing:-.04em;text-transform:capitalize}
+    .roundBtn{width:42px;height:42px;border-radius:15px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.1);display:grid;place-items:center;font-size:18px}
+    .calendarWrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(290px,.85fr);gap:12px;min-height:0;flex:1}
+    .calendarCard{min-height:0;display:flex;flex-direction:column}
+    .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;min-height:0;flex:1}
+    .weekday{text-align:center;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;padding:2px}
+    .day{position:relative;min-height:58px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:7px;display:flex;flex-direction:column;justify-content:space-between;gap:4px;text-align:left;overflow:hidden}
+    .day.out{opacity:.33}
+    .day.today{box-shadow:inset 0 0 0 2px rgba(96,165,250,.8)}
+    .day.selected{box-shadow:inset 0 0 0 2px var(--brand)}
+    .day.green{background:linear-gradient(135deg,rgba(52,211,153,.2),rgba(52,211,153,.06))}
+    .day.yellow{background:linear-gradient(135deg,rgba(250,204,21,.25),rgba(250,204,21,.065))}
+    .day.red{background:linear-gradient(135deg,rgba(251,113,133,.28),rgba(251,113,133,.07))}
+    .dayNum{font-weight:900;font-size:14px}
+    .dayHours{font-size:11px;color:var(--soft);font-variant-numeric:tabular-nums}
+    .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .legend span{display:inline-flex;gap:6px;align-items:center;font-size:11px;color:var(--muted)}
+    .swatch{width:12px;height:12px;border-radius:5px;display:inline-block}
+    .swatch.green{background:var(--good)}.swatch.yellow{background:var(--warn)}.swatch.red{background:var(--bad)}
+    .detailList{display:flex;flex-direction:column;gap:8px;max-height:210px;overflow:auto;padding-right:4px}
+    .sessionRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px;border-radius:16px;background:rgba(255,255,255,.065);border:1px solid rgba(255,255,255,.08)}
+    .sessionRow b{font-size:13px}.sessionRow span{color:var(--muted);font-size:12px}
+    .formGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+    .field label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px}
+    .field input,.field select{width:100%;border:1px solid rgba(255,255,255,.13);background:rgba(0,0,0,.22);color:var(--text);border-radius:16px;padding:13px 14px;outline:none;min-height:48px}
+    .field input:focus,.field select:focus{border-color:rgba(250,204,21,.65);box-shadow:0 0 0 4px rgba(250,204,21,.09)}
+    .exportPreview{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+    .tableBox{min-height:0;overflow:auto;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.13)}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;white-space:nowrap}
+    th{position:sticky;top:0;background:#172038;color:var(--soft);z-index:1}
+    td:last-child,th:last-child{text-align:right}
+    .settingsGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0}
+    .settingsActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .notice{border-radius:18px;padding:12px;background:rgba(96,165,250,.11);border:1px solid rgba(96,165,250,.18);color:var(--soft);font-size:13px;line-height:1.45}
+    .onboarding{width:min(760px,100%);padding:20px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
+    .onboardingHead{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+    .onboarding .logo{width:66px;height:66px;border-radius:22px;font-size:34px}
+    .onboarding h1{font-size:38px;letter-spacing:-.07em;margin:0}
+    .onboarding p{color:var(--muted);line-height:1.55;margin:6px 0 0}
+    .tips{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .tip{padding:12px;border-radius:18px;background:rgba(255,255,255,.065);border:1px solid rgba(255,255,255,.09);font-size:13px;color:var(--soft);line-height:1.35}
+    .hidden{display:none!important}
+    .toast{position:fixed;left:50%;bottom:calc(16px + var(--safeBottom));transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;background:#f8fafc;color:#111827;padding:12px 16px;border-radius:999px;box-shadow:0 16px 40px rgba(0,0,0,.35);font-weight:800;transition:.24s ease;z-index:50;max-width:calc(100% - 24px);text-align:center}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .modalBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.56);display:grid;place-items:center;padding:18px;z-index:40;backdrop-filter:blur(8px)}
+    .modal{width:min(430px,100%);border-radius:24px;background:#111827;border:1px solid rgba(255,255,255,.14);box-shadow:var(--shadow);padding:18px}
+    .modal h3{margin:0 0 8px;font-size:22px;letter-spacing:-.04em}.modal p{margin:0 0 16px;color:var(--muted);line-height:1.45}.modalActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:900px){
+      body{padding:8px;align-items:stretch}
+      .shell{height:100%;gap:8px}
+      .topbar{padding:9px 10px;border-radius:20px}
+      .logo{width:42px;height:42px;border-radius:14px}.brand h1{font-size:20px}.brand p{display:none}.clockNow{min-width:104px}.clockNow b{font-size:16px}.clockNow span{font-size:11px}
+      .app{grid-template-columns:1fr;grid-template-rows:1fr auto;gap:8px}
+      .sidebar{grid-row:2;flex-direction:row;padding:8px;gap:7px;border-radius:22px;padding-bottom:calc(8px + var(--safeBottom))}
+      .navBtn{padding:8px 5px;justify-content:center;flex-direction:column;gap:4px;border-radius:16px;font-size:11px;text-align:center;line-height:1.05}
+      .navBtn small,.miniStat,.spacer{display:none}.navBtn .ico{width:30px;height:30px;border-radius:11px}
+      .panel{grid-row:1;border-radius:22px;padding:10px;gap:9px;overflow:auto;min-height:0;overscroll-behavior:contain}
+      html,body{overflow:hidden}
+      .grid2,.calendarWrap,.settingsGrid{grid-template-columns:1fr}
+      .grid2{gap:9px}
+      .heroClock{min-height:174px;padding:12px}.heroClock .time{font-size:54px}
+      .grid3,.exportPreview{grid-template-columns:repeat(2,1fr);gap:8px}.statBox{padding:10px}.statBox b{font-size:21px}.actionRow,.settingsActions{gap:8px}.primary,.secondary,.danger,.ghost{min-height:46px;padding:12px 10px;border-radius:16px;font-size:14px}
+      .calendar{gap:5px}.day{min-height:46px;border-radius:13px;padding:5px}.dayNum{font-size:12px}.dayHours{font-size:10px}.weekday{font-size:10px}
+      .detailList,.logList{max-height:170px}.formGrid{grid-template-columns:1fr}.tableBox{max-height:300px}.tips{grid-template-columns:1fr}.onboarding{padding:16px;border-radius:22px;max-height:100%;overflow:auto}.onboarding h1{font-size:32px}.onboardingHead{grid-template-columns:1fr;text-align:center}.onboarding .logo{margin:auto}
+    }
+    @media (max-width:380px){
+      .heroClock .time{font-size:46px}.grid3,.exportPreview{grid-template-columns:1fr}.navBtn{font-size:10px}.navBtn .ico{width:28px;height:28px}.clockNow{display:none}.topbar{justify-content:center}.brand{justify-content:center;text-align:center}
+    }
+    @media print{body{background:white;color:#111;display:block;padding:0;overflow:auto}.shell,.toast,.modalBackdrop{display:none!important}}
+  </style>
+</head>
+<body>
+  <main id="onboarding" class="onboarding hidden" aria-label="Configuración inicial">
+    <div class="onboardingHead">
+      <div class="logo">⏱️</div>
+      <div>
+        <h1>Meshoras</h1>
+        <p>Registra tus entradas y salidas, consulta tu calendario mensual, calcula horas extra por semana y exporta un documento claro para reclamar tus horas trabajadas.</p>
+      </div>
+    </div>
+    <div class="tips">
+      <div class="tip"><b>1. Ficha</b><br>Marca entrada y salida con un toque.</div>
+      <div class="tip"><b>2. Consulta</b><br>Revisa días, semanas, meses y horas extra.</div>
+      <div class="tip"><b>3. Exporta</b><br>Genera un documento mensual con todo el detalle.</div>
+    </div>
+    <div class="formGrid">
+      <div class="field">
+        <label for="firstName">Nombre del trabajador</label>
+        <input id="firstName" autocomplete="name" placeholder="Ej: Víctor">
+      </div>
+      <div class="field">
+        <label for="firstHours">Horas semanales contratadas</label>
+        <input id="firstHours" type="number" min="0" max="168" step="0.5" inputmode="decimal" placeholder="Ej: 40">
+      </div>
+    </div>
+    <button id="saveFirst" class="secondary">Entrar en Meshoras</button>
+  </main>
+
+  <main id="appShell" class="shell hidden" aria-label="Meshoras">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">⏱️</div>
+        <div>
+          <h1>Meshoras</h1>
+          <p>Control local de horas, extras e historial mensual</p>
+        </div>
+      </div>
+      <div class="clockNow">
+        <b id="liveHour">--:--</b>
+        <span id="liveDate">--</span>
+      </div>
+    </header>
+
+    <section class="app">
+      <nav class="sidebar" aria-label="Pestañas">
+        <button class="navBtn active" data-tab="clock"><span class="ico">🟢</span><span>Fichar<small>entrada y salida</small></span></button>
+        <button class="navBtn" data-tab="history"><span class="ico">📅</span><span>Historial<small>calendario</small></span></button>
+        <button class="navBtn" data-tab="export"><span class="ico">📄</span><span>Documento<small>exportar mes</small></span></button>
+        <button class="navBtn" data-tab="settings"><span class="ico">⚙️</span><span>Ajustes<small>datos y copias</small></span></button>
+        <div class="spacer"></div>
+        <div class="miniStat"><span>Mes actual</span><b id="miniMonthHours">0h</b></div>
+      </nav>
+
+      <section id="tab-clock" class="panel active">
+        <div class="grid2">
+          <div class="card">
+            <div class="cardTitle">
+              <div><h2 id="helloUser">Hola</h2><p>Gestiona tu jornada actual.</p></div>
+              <span class="pill"><i id="statusDot" class="pulseDot"></i><span id="statusText">Sin fichaje activo</span></span>
+            </div>
+            <div class="heroClock">
+              <div>
+                <div class="label">Horas registradas hoy</div>
+                <div id="todayTimer" class="time">00:00:00</div>
+                <div id="activeInfo" class="sub">Todavía no has fichado entrada hoy.</div>
+              </div>
+            </div>
+            <div class="actionRow">
+              <button id="clockInBtn" class="primary">🎺 Fichar entrada</button>
+              <button id="clockOutBtn" class="danger">🏁 Fichar salida</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cardTitle"><div><h2>Resumen rápido</h2><p>Datos actualizados al momento.</p></div></div>
+            <div class="grid3">
+              <div class="statBox"><span>Hoy</span><b id="quickToday">0h</b><em>registradas</em></div>
+              <div class="statBox"><span>Semana</span><b id="quickWeek">0h</b><em>lunes a domingo</em></div>
+              <div class="statBox"><span>Extras semana</span><b id="quickExtra">0h</b><em>según contrato</em></div>
+            </div>
+            <div style="height:10px"></div>
+            <div class="cardTitle"><div><h3>Últimos registros</h3><p>Entradas y salidas recientes.</p></div></div>
+            <div id="recentLogs" class="logList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-history" class="panel">
+        <div class="monthBar">
+          <button id="prevMonth" class="roundBtn" aria-label="Mes anterior">‹</button>
+          <h2 id="monthTitle">Mes</h2>
+          <div style="display:flex;gap:8px"><button id="todayMonth" class="ghost">Hoy</button><button id="nextMonth" class="roundBtn" aria-label="Mes siguiente">›</button></div>
+        </div>
+        <div class="calendarWrap">
+          <div class="card calendarCard">
+            <div id="calendar" class="calendar"></div>
+            <div class="legend">
+              <span><i class="swatch green"></i> No trabajado</span>
+              <span><i class="swatch yellow"></i> Hasta 6h</span>
+              <span><i class="swatch red"></i> Más de 6h</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cardTitle"><div><h2 id="selectedDayTitle">Día seleccionado</h2><p id="selectedWeekRange">Semana</p></div></div>
+            <div class="grid3">
+              <div class="statBox"><span>Día</span><b id="histDay">0h</b><em>total</em></div>
+              <div class="statBox"><span>Semana</span><b id="histWeek">0h</b><em>lun-dom</em></div>
+              <div class="statBox"><span>Extra</span><b id="histExtra">0h</b><em>semanal</em></div>
+            </div>
+            <div style="height:10px"></div>
+            <div class="grid3">
+              <div class="statBox"><span>Mes</span><b id="histMonth">0h</b><em>registradas</em></div>
+              <div class="statBox"><span>Extras mes</span><b id="histMonthExtra">0h</b><em>por semanas</em></div>
+              <div class="statBox"><span>Días trabajados</span><b id="histWorkedDays">0</b><em>del mes</em></div>
+            </div>
+            <div style="height:10px"></div>
+            <div class="cardTitle"><div><h3>Entradas y salidas</h3><p>Detalle del día pulsado.</p></div></div>
+            <div id="selectedSessions" class="detailList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-export" class="panel">
+        <div class="card">
+          <div class="cardTitle"><div><h2>Crear documento mensual</h2><p>Elige el mes y genera un documento con jornadas, semanas y horas extra.</p></div></div>
+          <div class="formGrid">
+            <div class="field"><label for="exportMonth">Mes a exportar</label><input id="exportMonth" type="month"></div>
+            <div class="field"><label>Acciones</label><button id="generateDoc" class="secondary">📄 Generar documento</button></div>
+          </div>
+          <div class="exportPreview">
+            <div class="statBox"><span>Total del mes</span><b id="expTotal">0h</b><em>trabajadas</em></div>
+            <div class="statBox"><span>Horas extra</span><b id="expExtra">0h</b><em>por semanas</em></div>
+            <div class="statBox"><span>Días trabajados</span><b id="expDays">0</b><em>del mes</em></div>
+            <div class="statBox"><span>Contrato</span><b id="expContract">0h</b><em>semanales</em></div>
+          </div>
+        </div>
+        <div class="card" style="min-height:0;flex:1;display:flex;flex-direction:column">
+          <div class="cardTitle"><div><h2>Vista rápida del mes</h2><p>Resumen antes de exportar.</p></div><button id="downloadCsv" class="ghost">⬇️ CSV</button></div>
+          <div class="tableBox"><table><thead><tr><th>Día</th><th>Entrada</th><th>Salida</th><th>Total</th></tr></thead><tbody id="exportTable"></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="tab-settings" class="panel">
+        <div class="settingsGrid">
+          <div class="card">
+            <div class="cardTitle"><div><h2>Datos del trabajador</h2><p>Estos datos se guardan solo en este dispositivo.</p></div></div>
+            <div class="formGrid">
+              <div class="field"><label for="settingsName">Nombre</label><input id="settingsName"></div>
+              <div class="field"><label for="settingsHours">Horas semanales contratadas</label><input id="settingsHours" type="number" min="0" max="168" step="0.5" inputmode="decimal"></div>
+            </div>
+            <div style="height:10px"></div>
+            <button id="saveSettings" class="secondary">Guardar cambios</button>
+          </div>
+          <div class="card">
+            <div class="cardTitle"><div><h2>Copias de seguridad</h2><p>Exporta o carga todos los datos de Meshoras.</p></div></div>
+            <div class="settingsActions">
+              <button id="backupBtn" class="primary">💾 Descargar copia</button>
+              <button id="restoreBtn" class="ghost">📂 Cargar copia</button>
+            </div>
+            <input id="restoreFile" type="file" accept="application/json,.json" class="hidden">
+            <div style="height:10px"></div>
+            <div class="notice">La copia incluye nombre, contrato semanal y todos los fichajes guardados. Al cargarla, se sustituirán los datos actuales.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="cardTitle"><div><h2>Zona de seguridad</h2><p>Borra todo el historial y vuelve a la configuración inicial.</p></div></div>
+          <button id="wipeBtn" class="danger">🧨 Borrar todos los datos</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <div id="confirmModal" class="modalBackdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h3 id="modalTitle">Confirmar</h3>
+      <p id="modalText">¿Quieres continuar?</p>
+      <div class="modalActions"><button id="modalCancel" class="ghost">Cancelar</button><button id="modalOk" class="danger">Confirmar</button></div>
+    </div>
+  </div>
+
+  <script>
+    (()=>{
+      const KEY='meshoras.v1';
+      const $=s=>document.querySelector(s);
+      const $$=s=>document.querySelectorAll(s);
+      const pad=n=>String(n).padStart(2,'0');
+      const dayMs=86400000;
+      const state={data:null,tab:'clock',viewMonth:null,selectedDate:null,timer:null,confirmAction:null};
+      const defaultData=()=>({version:1,settings:{name:'',weeklyHours:40},entries:{},active:null,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+      const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||defaultData()}catch{return defaultData()}};
+      const save=()=>{state.data.updatedAt=new Date().toISOString();localStorage.setItem(KEY,JSON.stringify(state.data));};
+      const validProfile=()=>state.data.settings.name.trim()!==''&&Number(state.data.settings.weeklyHours)>=0;
+      const toKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+      const fromKey=k=>{const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d)};
+      const monthKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+      const monthLabel=d=>d.toLocaleDateString('es-ES',{month:'long',year:'numeric'});
+      const dateLabel=d=>d.toLocaleDateString('es-ES',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+      const fmtTime=d=>`${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      const fmtDateShort=d=>d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+      const fmtDuration=ms=>{ms=Math.max(0,Math.round(ms/1000)*1000);const s=Math.floor(ms/1000);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return `${pad(h)}:${pad(m)}:${pad(sec)}`};
+      const fmtHours=ms=>{const total=Math.max(0,ms)/3600000;if(total===0)return '0h';const rounded=Math.round(total*100)/100;return `${rounded.toLocaleString('es-ES',{minimumFractionDigits:rounded%1?2:0,maximumFractionDigits:2})}h`};
+      const mondayOf=d=>{const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);return x};
+      const sundayOf=d=>{const m=mondayOf(d);m.setDate(m.getDate()+6);return m};
+      const monthStart=d=>new Date(d.getFullYear(),d.getMonth(),1);
+      const monthEnd=d=>new Date(d.getFullYear(),d.getMonth()+1,0);
+      const escapeHtml=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+      const getSessions=k=>(state.data.entries[k]||[]).filter(s=>s&&s.in&&s.out);
+      const durationOfSession=s=>new Date(s.out)-new Date(s.in);
+      const activeOverlapForDay=k=>{if(!state.data.active)return 0;const start=new Date(state.data.active.in);const end=new Date();const dayStart=fromKey(k);const dayEnd=new Date(dayStart.getFullYear(),dayStart.getMonth(),dayStart.getDate()+1);return Math.max(0,Math.min(end,dayEnd)-Math.max(start,dayStart))};
+      const activeSessionForDay=k=>{if(!state.data.active||!activeOverlapForDay(k))return null;const start=new Date(state.data.active.in);const end=new Date();const dayStart=fromKey(k);const dayEnd=new Date(dayStart.getFullYear(),dayStart.getMonth(),dayStart.getDate()+1);return {in:new Date(Math.max(start,dayStart)),out:end<dayEnd?null:dayEnd,active:end<dayEnd,ms:Math.min(end,dayEnd)-Math.max(start,dayStart)}};
+      const dayTotal=k=>getSessions(k).reduce((a,s)=>a+durationOfSession(s),0)+activeOverlapForDay(k);
+      const weekTotal=d=>{let start=mondayOf(d),total=0;for(let i=0;i<7;i++){const x=new Date(start);x.setDate(start.getDate()+i);total+=dayTotal(toKey(x));}return total};
+      const weekExtra=d=>Math.max(0,weekTotal(d)-Number(state.data.settings.weeklyHours||0)*3600000);
+      const monthTotal=d=>{let total=0;const end=monthEnd(d);for(let x=monthStart(d);x<=end;x=new Date(x.getFullYear(),x.getMonth(),x.getDate()+1))total+=dayTotal(toKey(x));return total};
+      const monthWorkedDays=d=>{let n=0;const end=monthEnd(d);for(let x=monthStart(d);x<=end;x=new Date(x.getFullYear(),x.getMonth(),x.getDate()+1))if(dayTotal(toKey(x))>0)n++;return n};
+      const monthWeekStarts=d=>{const starts=[];const seen=new Set();const end=monthEnd(d);for(let x=monthStart(d);x<=end;x=new Date(x.getFullYear(),x.getMonth(),x.getDate()+1)){const k=toKey(mondayOf(x));if(!seen.has(k)){seen.add(k);starts.push(mondayOf(x));}}return starts};
+      const monthExtra=d=>monthWeekStarts(d).reduce((a,w)=>a+weekExtra(w),0);
+      const monthRows=d=>{const rows=[];const end=monthEnd(d);for(let x=monthStart(d);x<=end;x=new Date(x.getFullYear(),x.getMonth(),x.getDate()+1)){const key=toKey(x);const sessions=getSessions(key);const active=activeSessionForDay(key);if(sessions.length||active){sessions.forEach(s=>rows.push({date:new Date(x),key,in:new Date(s.in),out:new Date(s.out),ms:durationOfSession(s),active:false}));if(active)rows.push({date:new Date(x),key,in:active.in,out:active.out,ms:active.ms,active:active.active});}else rows.push({date:new Date(x),key,in:null,out:null,ms:0,active:false});}return rows};
+      const toast=msg=>{const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(el.t);el.t=setTimeout(()=>el.classList.remove('show'),2300)};
+      const confirmBox=(title,text,okText,action)=>{$('#modalTitle').textContent=title;$('#modalText').textContent=text;$('#modalOk').textContent=okText;state.confirmAction=action;$('#confirmModal').classList.remove('hidden')};
+      const closeConfirm=()=>{$('#confirmModal').classList.add('hidden');state.confirmAction=null};
+      const download=(name,type,content)=>{const blob=new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0)};
+      const playSound=type=>{try{const AudioCtx=window.AudioContext||window.webkitAudioContext;const ctx=new AudioCtx();const now=ctx.currentTime;const notes=type==='in'?[523.25,659.25,783.99,1046.5]:[783.99,587.33,392,261.63];notes.forEach((f,i)=>{const o=ctx.createOscillator();const g=ctx.createGain();o.type=i%2?'triangle':'sine';o.frequency.setValueAtTime(f,now+i*.075);g.gain.setValueAtTime(0,now+i*.075);g.gain.linearRampToValueAtTime(.12,now+i*.075+.015);g.gain.exponentialRampToValueAtTime(.0001,now+i*.075+.18);o.connect(g);g.connect(ctx.destination);o.start(now+i*.075);o.stop(now+i*.075+.2)});setTimeout(()=>ctx.close(),800)}catch{}};
+      const splitAndStore=(start,end)=>{let cur=new Date(start);const finish=new Date(end);while(cur<finish){const nextMid=new Date(cur.getFullYear(),cur.getMonth(),cur.getDate()+1);const partEnd=finish<nextMid?finish:nextMid;const key=toKey(cur);state.data.entries[key]=state.data.entries[key]||[];state.data.entries[key].push({in:cur.toISOString(),out:partEnd.toISOString(),createdAt:new Date().toISOString()});cur=new Date(partEnd)}};
+      const setTab=tab=>{state.tab=tab;$$('.navBtn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));$$('.panel').forEach(p=>p.classList.remove('active'));$(`#tab-${tab}`).classList.add('active');renderAll()};
+      const showApp=()=>{$('#onboarding').classList.add('hidden');$('#appShell').classList.remove('hidden');state.viewMonth=state.viewMonth||new Date();state.selectedDate=state.selectedDate||new Date();$('#exportMonth').value=monthKey(new Date());setTab('clock')};
+      const showOnboarding=()=>{$('#appShell').classList.add('hidden');$('#onboarding').classList.remove('hidden')};
+      const renderTop=()=>{const now=new Date();$('#liveHour').textContent=`${pad(now.getHours())}:${pad(now.getMinutes())}`;$('#liveDate').textContent=now.toLocaleDateString('es-ES',{weekday:'short',day:'2-digit',month:'short'});$('#miniMonthHours').textContent=fmtHours(monthTotal(new Date()))};
+      const renderClock=()=>{const name=state.data.settings.name.trim();$('#helloUser').textContent=`Hola, ${name}!`;const active=state.data.active;$('#statusDot').classList.toggle('on',!!active);$('#statusText').textContent=active?'Jornada activa':'Sin fichaje activo';$('#clockInBtn').disabled=!!active;$('#clockOutBtn').disabled=!active;const todayKey=toKey(new Date());const todayMs=dayTotal(todayKey);$('#todayTimer').textContent=fmtDuration(todayMs);$('#quickToday').textContent=fmtHours(todayMs);const wt=weekTotal(new Date());$('#quickWeek').textContent=fmtHours(wt);$('#quickExtra').textContent=fmtHours(Math.max(0,wt-Number(state.data.settings.weeklyHours||0)*3600000));$('#activeInfo').textContent=active?`Entrada fichada a las ${fmtTime(new Date(active.in))}.`:'Todavía no tienes una jornada activa.';renderRecentLogs()};
+      const renderRecentLogs=()=>{const all=[];Object.keys(state.data.entries).sort().forEach(k=>getSessions(k).forEach(s=>all.push({key:k,s})));all.sort((a,b)=>new Date(b.s.out)-new Date(a.s.out));const box=$('#recentLogs');if(state.data.active)all.unshift({active:true,key:toKey(new Date()),s:{in:state.data.active.in,out:null}});if(!all.length){box.innerHTML='<div class="empty">Aún no hay registros guardados.</div>';return}box.innerHTML=all.slice(0,6).map(r=>{const inn=new Date(r.s.in),out=r.s.out?new Date(r.s.out):null;return `<div class="logItem"><div><b>${fmtDateShort(fromKey(r.key))}</b><span>${fmtTime(inn)} - ${out?fmtTime(out):'en curso'}</span></div><strong>${out?fmtHours(out-inn):fmtHours(Date.now()-inn)}</strong></div>`}).join('')};
+      const renderCalendar=()=>{const d=state.viewMonth||new Date();$('#monthTitle').textContent=monthLabel(d);const cal=$('#calendar');const weekdays=['L','M','X','J','V','S','D'];const first=monthStart(d);const start=new Date(first);start.setDate(first.getDate()-((first.getDay()+6)%7));const todayKey=toKey(new Date());const selectedKey=toKey(state.selectedDate||new Date());let html=weekdays.map(w=>`<div class="weekday">${w}</div>`).join('');for(let i=0;i<42;i++){const x=new Date(start);x.setDate(start.getDate()+i);const key=toKey(x);const ms=dayTotal(key);const cls=ms===0?'green':ms<=6*3600000?'yellow':'red';html+=`<button class="day ${cls} ${x.getMonth()!==d.getMonth()?'out':''} ${key===todayKey?'today':''} ${key===selectedKey?'selected':''}" data-date="${key}"><span class="dayNum">${x.getDate()}</span><span class="dayHours">${ms?fmtHours(ms):'0h'}</span></button>`}cal.innerHTML=html;cal.querySelectorAll('.day').forEach(btn=>btn.addEventListener('click',()=>{state.selectedDate=fromKey(btn.dataset.date);if(state.selectedDate.getMonth()!==state.viewMonth.getMonth()||state.selectedDate.getFullYear()!==state.viewMonth.getFullYear())state.viewMonth=new Date(state.selectedDate.getFullYear(),state.selectedDate.getMonth(),1);renderAll()}));renderHistoryStats()};
+      const renderHistoryStats=()=>{const d=state.selectedDate||new Date();const key=toKey(d);$('#selectedDayTitle').textContent=dateLabel(d);const m=mondayOf(d),s=sundayOf(d);$('#selectedWeekRange').textContent=`Semana: ${fmtDateShort(m)} - ${fmtDateShort(s)}`;$('#histDay').textContent=fmtHours(dayTotal(key));const wt=weekTotal(d);$('#histWeek').textContent=fmtHours(wt);$('#histExtra').textContent=fmtHours(Math.max(0,wt-Number(state.data.settings.weeklyHours||0)*3600000));$('#histMonth').textContent=fmtHours(monthTotal(state.viewMonth));$('#histMonthExtra').textContent=fmtHours(monthExtra(state.viewMonth));$('#histWorkedDays').textContent=monthWorkedDays(state.viewMonth);const sessions=getSessions(key);const box=$('#selectedSessions');const active=activeSessionForDay(key);if(!sessions.length&&!active){box.innerHTML='<div class="empty">No hay fichajes en este día.</div>';return}let html=sessions.map((sess,idx)=>{const inn=new Date(sess.in),out=new Date(sess.out);return `<div class="sessionRow"><div><b>Registro ${idx+1}</b><span>${fmtTime(inn)} - ${fmtTime(out)}</span></div><strong>${fmtHours(out-inn)}</strong></div>`}).join('');if(active){html+=`<div class="sessionRow"><div><b>Jornada activa</b><span>${fmtTime(active.in)} - ${active.out?fmtTime(active.out):'en curso'}</span></div><strong>${fmtHours(active.ms)}</strong></div>`}box.innerHTML=html};
+      const renderExport=()=>{const val=$('#exportMonth').value||monthKey(new Date());const [y,m]=val.split('-').map(Number);const d=new Date(y,m-1,1);$('#expTotal').textContent=fmtHours(monthTotal(d));$('#expExtra').textContent=fmtHours(monthExtra(d));$('#expDays').textContent=monthWorkedDays(d);$('#expContract').textContent=fmtHours(Number(state.data.settings.weeklyHours||0)*3600000);const rows=monthRows(d);$('#exportTable').innerHTML=rows.map(r=>`<tr><td>${fmtDateShort(r.date)}</td><td>${r.in?fmtTime(r.in):'-'}</td><td>${r.out?fmtTime(r.out):(r.active?'en curso':'-')}</td><td>${fmtHours(r.ms)}</td></tr>`).join('')};
+      const renderSettings=()=>{$('#settingsName').value=state.data.settings.name;$('#settingsHours').value=state.data.settings.weeklyHours};
+      const renderAll=()=>{if(!validProfile())return;renderTop();renderClock();if(state.tab==='history')renderCalendar();if(state.tab==='export')renderExport();if(state.tab==='settings')renderSettings()};
+      const buildDocument=(d)=>{const name=escapeHtml(state.data.settings.name);const weekly=Number(state.data.settings.weeklyHours||0);const rows=monthRows(d);const weeks=monthWeekStarts(d);const dayRows=rows.map(r=>`<tr><td>${fmtDateShort(r.date)}</td><td>${escapeHtml(r.date.toLocaleDateString('es-ES',{weekday:'long'}))}</td><td>${r.in?fmtTime(r.in):'-'}</td><td>${r.out?fmtTime(r.out):(r.active?'en curso':'-')}</td><td>${fmtHours(r.ms)}</td></tr>`).join('');const weekRows=weeks.map(w=>{const end=sundayOf(w);const total=weekTotal(w);const extra=Math.max(0,total-weekly*3600000);return `<tr><td>${fmtDateShort(w)} - ${fmtDateShort(end)}</td><td>${fmtHours(total)}</td><td>${fmtHours(weekly*3600000)}</td><td>${fmtHours(extra)}</td></tr>`}).join('');return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Meshoras - ${escapeHtml(monthLabel(d))}</title><style>body{font-family:Arial,sans-serif;color:#111;margin:34px}h1{margin:0 0 4px;font-size:30px}h2{margin:26px 0 10px;font-size:20px}.muted{color:#555}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:22px 0}.box{border:1px solid #ddd;border-radius:12px;padding:12px;background:#fafafa}.box span{display:block;color:#666;font-size:12px}.box b{font-size:24px}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:13px}th{background:#111827;color:white}.right{text-align:right}.sign{margin-top:36px;display:grid;grid-template-columns:1fr 1fr;gap:40px}.line{border-top:1px solid #111;padding-top:8px;color:#555}@media print{body{margin:18mm}.noPrint{display:none}}</style></head><body><h1>Informe mensual de horas - Meshoras</h1><div class="muted">Trabajador: <b>${name}</b> · Mes: <b>${escapeHtml(monthLabel(d))}</b> · Generado: ${new Date().toLocaleString('es-ES')}</div><div class="summary"><div class="box"><span>Total mes</span><b>${fmtHours(monthTotal(d))}</b></div><div class="box"><span>Horas extra mes</span><b>${fmtHours(monthExtra(d))}</b></div><div class="box"><span>Días trabajados</span><b>${monthWorkedDays(d)}</b></div><div class="box"><span>Contrato semanal</span><b>${fmtHours(weekly*3600000)}</b></div></div><h2>Detalle diario</h2><table><thead><tr><th>Fecha</th><th>Día</th><th>Entrada</th><th>Salida</th><th class="right">Total</th></tr></thead><tbody>${dayRows}</tbody></table><h2>Resumen semanal y horas extra</h2><table><thead><tr><th>Semana</th><th class="right">Horas trabajadas</th><th class="right">Horas contratadas</th><th class="right">Horas extra</th></tr></thead><tbody>${weekRows}</tbody></table><p class="muted">Las horas extra se calculan por semana natural de lunes a domingo, comparando el total semanal registrado con las horas semanales contratadas indicadas en Meshoras.</p><div class="sign"><div class="line">Firma trabajador</div><div class="line">Firma empresa / responsable</div></div><p class="noPrint"><button onclick="window.print()" style="padding:12px 18px;border:0;border-radius:10px;background:#111827;color:white;font-weight:bold;cursor:pointer">Imprimir o guardar en PDF</button></p></body></html>`};
+      const exportDoc=()=>{const val=$('#exportMonth').value||monthKey(new Date());const [y,m]=val.split('-').map(Number);const d=new Date(y,m-1,1);const html=buildDocument(d);download(`Meshoras_${state.data.settings.name.replace(/\s+/g,'_')}_${monthKey(d)}.html`,'text/html;charset=utf-8',html);const w=window.open('','_blank');if(w){w.document.open();w.document.write(html);w.document.close()}toast('Documento generado')};
+      const exportCsv=()=>{const val=$('#exportMonth').value||monthKey(new Date());const [y,m]=val.split('-').map(Number);const d=new Date(y,m-1,1);const rows=monthRows(d);let csv='Fecha;Dia;Entrada;Salida;Total horas\n';rows.forEach(r=>{csv+=`${fmtDateShort(r.date)};${r.date.toLocaleDateString('es-ES',{weekday:'long'})};${r.in?fmtTime(r.in):''};${r.out?fmtTime(r.out):(r.active?'en curso':'')};${(r.ms/3600000).toFixed(2).replace('.',',')}\n`});download(`Meshoras_${monthKey(d)}.csv`,'text/csv;charset=utf-8',csv);toast('CSV descargado')};
+      const backup=()=>download(`Meshoras_copia_${new Date().toISOString().slice(0,10)}.json`,'application/json;charset=utf-8',JSON.stringify(state.data,null,2));
+      const restore=file=>{const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!data||!data.settings||!data.entries)throw new Error('bad');confirmBox('Cargar copia','Se sustituirán los datos actuales por la copia seleccionada.','Cargar',()=>{state.data=data;save();closeConfirm();toast('Copia cargada');if(validProfile())showApp();else showOnboarding();renderAll()})}catch{toast('La copia no es válida')}};reader.readAsText(file)};
+      const initEvents=()=>{
+        $('#saveFirst').addEventListener('click',()=>{const name=$('#firstName').value.trim();const hours=Number($('#firstHours').value);if(!name){toast('Introduce un nombre');return}if(!Number.isFinite(hours)||hours<0||hours>168){toast('Revisa las horas semanales');return}state.data.settings.name=name;state.data.settings.weeklyHours=hours;save();showApp();toast('Perfil guardado')});
+        $$('.navBtn').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+        $('#clockInBtn').addEventListener('click',()=>{if(state.data.active){toast('Ya tienes una entrada activa');return}state.data.active={in:new Date().toISOString()};save();playSound('in');toast('Entrada fichada');renderAll()});
+        $('#clockOutBtn').addEventListener('click',()=>{if(!state.data.active){toast('Primero ficha entrada');return}const start=new Date(state.data.active.in);const end=new Date();if(end-start<1000){toast('Espera un momento antes de salir');return}splitAndStore(start,end);state.data.active=null;save();playSound('out');toast('Salida fichada');renderAll()});
+        $('#prevMonth').addEventListener('click',()=>{state.viewMonth=new Date(state.viewMonth.getFullYear(),state.viewMonth.getMonth()-1,1);state.selectedDate=new Date(state.viewMonth);renderAll()});
+        $('#nextMonth').addEventListener('click',()=>{state.viewMonth=new Date(state.viewMonth.getFullYear(),state.viewMonth.getMonth()+1,1);state.selectedDate=new Date(state.viewMonth);renderAll()});
+        $('#todayMonth').addEventListener('click',()=>{state.viewMonth=new Date();state.selectedDate=new Date();renderAll()});
+        $('#exportMonth').addEventListener('change',renderExport);
+        $('#generateDoc').addEventListener('click',exportDoc);
+        $('#downloadCsv').addEventListener('click',exportCsv);
+        $('#saveSettings').addEventListener('click',()=>{const name=$('#settingsName').value.trim();const hours=Number($('#settingsHours').value);if(!name){toast('El nombre no puede estar vacío');return}if(!Number.isFinite(hours)||hours<0||hours>168){toast('Revisa las horas semanales');return}state.data.settings.name=name;state.data.settings.weeklyHours=hours;save();toast('Ajustes guardados');renderAll()});
+        $('#backupBtn').addEventListener('click',backup);
+        $('#restoreBtn').addEventListener('click',()=>$('#restoreFile').click());
+        $('#restoreFile').addEventListener('change',e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=''});
+        $('#wipeBtn').addEventListener('click',()=>confirmBox('Borrar todos los datos','Se eliminarán nombre, contrato, fichajes, historial y cualquier jornada activa de este dispositivo. Esta acción no se puede deshacer.','Borrar todo',()=>{localStorage.removeItem(KEY);state.data=defaultData();closeConfirm();toast('Datos borrados');showOnboarding()}));
+        $('#modalCancel').addEventListener('click',closeConfirm);
+        $('#modalOk').addEventListener('click',()=>{if(state.confirmAction)state.confirmAction()});
+        $('#confirmModal').addEventListener('click',e=>{if(e.target.id==='confirmModal')closeConfirm()});
+        document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderAll()});
+      };
+      const init=()=>{state.data=load();initEvents();if(validProfile())showApp();else showOnboarding();renderTop();clearInterval(state.timer);state.timer=setInterval(renderAll,1000)};
+      init();
+    })();
+  </script>
+</body>
+</html>
