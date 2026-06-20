@@ -97,7 +97,7 @@
     .logItem span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
     .empty{display:grid;place-items:center;text-align:center;color:var(--muted);padding:22px;border:1px dashed rgba(255,255,255,.15);border-radius:20px;min-height:112px}
     .monthBar{display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .monthBar h2{font-size:20px;margin:0;letter-spacing:-.04em;text-transform:capitalize}
+    .monthBar h2{font-size:20px;margin:0;letter-spacing:-.04em;text-transform:none}
     .roundBtn{width:42px;height:42px;border-radius:15px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.1);display:grid;place-items:center;font-size:18px}
     .calendarWrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(290px,.85fr);gap:12px;min-height:0;flex:1}
     .calendarCard{min-height:0;display:flex;flex-direction:column}
@@ -166,6 +166,63 @@
     @media (max-width:380px){
       .heroClock .time{font-size:46px}.grid3,.exportPreview{grid-template-columns:1fr}.navBtn{font-size:10px}.navBtn .ico{width:28px;height:28px}.clockNow{display:none}.topbar{justify-content:center}.brand{justify-content:center;text-align:center}
     }
+
+    @media (max-width:900px){
+      html,body{height:auto;min-height:100%;overflow:auto}
+      body{display:block;padding:8px;min-height:100dvh}
+      #appShell{width:100%;height:auto;min-height:calc(100dvh - 16px);display:flex;flex-direction:column;gap:8px}
+      .topbar{flex:0 0 auto;border-radius:22px;padding:10px 12px}
+      .app{height:auto;min-height:0;display:block;padding-bottom:calc(94px + var(--safeBottom))}
+      .sidebar{position:fixed;left:8px;right:8px;bottom:calc(8px + var(--safeBottom));z-index:30;display:flex;flex-direction:row;gap:6px;padding:8px;min-height:auto;border-radius:22px}
+      .panel{display:none;min-height:auto;overflow:visible;padding:14px;border-radius:22px}
+      .panel.active{display:block}
+      .panel>*+*{margin-top:12px}
+      .grid2,.calendarWrap,.settingsGrid,.formGrid{display:grid;grid-template-columns:1fr;gap:12px;min-height:auto;flex:none}
+      .grid3{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+      .exportPreview{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+      .card{padding:14px;border-radius:22px;min-height:auto}
+      .calendarCard{display:block;min-height:auto}
+      .calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;min-height:auto;flex:none}
+      .day{aspect-ratio:1/1;min-height:0;height:auto;padding:5px;border-radius:12px}
+      .weekday{font-size:10px;padding:2px 0}
+      .legend{position:relative;z-index:1;margin-top:10px}
+      .detailList,.logList{max-height:none;overflow:visible;padding-right:0}
+      .tableBox{max-height:360px;overflow:auto}
+      .settingsActions{grid-template-columns:1fr;gap:8px}
+      .notice{position:relative;z-index:1}
+      .empty{min-height:96px}
+      .field input,.field select{font-size:16px}
+    }
+    @media (max-width:480px){
+      body{padding:6px}
+      #appShell{min-height:calc(100dvh - 12px)}
+      .topbar{padding:10px;border-radius:20px}
+      .logo{width:44px;height:44px;border-radius:14px}
+      .brand h1{font-size:22px}
+      .app{padding-bottom:calc(94px + var(--safeBottom))}
+      .panel{padding:10px;border-radius:20px}
+      .sidebar{left:6px;right:6px;bottom:calc(6px + var(--safeBottom));padding:8px 6px;gap:4px}
+      .navBtn{min-width:0;padding:8px 4px}
+      .navBtn span:not(.ico){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+      .statBox{padding:10px 8px;border-radius:16px}
+      .statBox b{font-size:24px}
+      .statBox em{font-size:11px}
+      .monthBar h2{font-size:21px;text-align:center}
+      .roundBtn{width:46px;height:46px}
+      .ghost{min-height:46px;padding:12px 14px}
+      .calendar{gap:4px}
+      .day{padding:5px;border-radius:12px}
+      .dayNum{font-size:13px}
+      .dayHours{font-size:10px}
+      .cardTitle{align-items:flex-start}
+      .settingsActions .primary,.settingsActions .ghost{width:100%}
+    }
+    @media (max-width:380px){
+      .grid3{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .calendar{gap:3px}
+      .dayNum{font-size:12px}
+    }
+
     @media print{body{background:white;color:#111;display:block;padding:0;overflow:auto}.shell,.toast,.modalBackdrop{display:none!important}}
   </style>
 </head>
@@ -363,7 +420,7 @@
       const toKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
       const fromKey=k=>{const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d)};
       const monthKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}`;
-      const monthLabel=d=>d.toLocaleDateString('es-ES',{month:'long',year:'numeric'});
+      const monthLabel=d=>{const s=d.toLocaleDateString('es-ES',{month:'long',year:'numeric'});return s.charAt(0).toUpperCase()+s.slice(1)};
       const dateLabel=d=>d.toLocaleDateString('es-ES',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
       const fmtTime=d=>`${pad(d.getHours())}:${pad(d.getMinutes())}`;
       const fmtDateShort=d=>d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
